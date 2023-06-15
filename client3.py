@@ -4,6 +4,7 @@ import socket
 import threading
 import json
 from queue import Queue
+import time
 
 i=0#dummy
 Q=Queue
@@ -14,13 +15,16 @@ ServerPORT = 60501
 ClientPORT = 60585
 Server_ADDR=(ServerIP,ServerPORT)
 Client_ADDR=(ClientIP,ClientPORT)
-data = {'type':'SOURCE','IP': ClientIP,'PORT':ClientPORT,'Power':10}#Create the dictonary
+data = {'type':'SOURCE','IP': ClientIP,'PORT':ClientPORT,'Power':500}#Create the dictonary
 msg_format={'type':'SOURCE','IP':ClientIP,'PORT':ClientPORT,'msg':0}#Message format for all communication apart from initial connection
 client2=socket.socket(socket.AF_INET,socket.SOCK_STREAM)#Socket client2 waits for a message from the load if its a source
 
 def server_connect(Server_ADDR,data={}):
-    send(Server_ADDR,data)
     print("Connected to the server")
+    print(f"Powering capability is{data['Power']}")
+    while True:
+        send(Server_ADDR,data)
+        time.sleep(100)
     
 def client_connect(Client_ADDR,msg_format={}):
     client2.bind(Client_ADDR)
@@ -52,8 +56,12 @@ def send(ADDR=(),msg={}):
     client1.sendall(json.dumps(msg).encode())
     client1.close()
 
-server_connect(Server_ADDR,data)
-client_connect(Client_ADDR,msg_format)
+
+if __name__ == "__main__":
+    Thread1=threading.Thread(target=server_connect,args=(Server_ADDR,data))
+    Thread2=threading.Thread(target=client_connect,args=(Client_ADDR,msg_format))  
+    Thread1.start()
+    Thread2.start()
 
 
 
